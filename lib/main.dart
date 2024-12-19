@@ -8,7 +8,7 @@ void main() {
   runApp(MyApp());
 }
 
-class  MyApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,7 +36,8 @@ class _MusicPlayerState extends State<MusicPlayer> {
     } else if (status.isDenied) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Storage permission is required. Click here to grant it."),
+          content:
+              Text("Storage permission is required. Click here to grant it."),
           action: SnackBarAction(
             label: "Grant",
             onPressed: () async {
@@ -115,7 +116,8 @@ class _MusicPlayerState extends State<MusicPlayer> {
       Rx.combineLatest2<Duration, Duration?, DurationState>(
         _audioPlayer.positionStream,
         _audioPlayer.durationStream,
-        (position, duration) => DurationState(position, duration ?? Duration.zero),
+        (position, duration) =>
+            DurationState(position, duration ?? Duration.zero),
       );
 
   @override
@@ -158,9 +160,12 @@ class _MusicPlayerState extends State<MusicPlayer> {
                     Slider(
                       min: 0.0,
                       max: duration.inMilliseconds.toDouble(),
-                      value: position.inMilliseconds.toDouble().clamp(0.0, duration.inMilliseconds.toDouble()),
+                      value: position.inMilliseconds
+                          .toDouble()
+                          .clamp(0.0, duration.inMilliseconds.toDouble()),
                       onChanged: (value) {
-                        _audioPlayer.seek(Duration(milliseconds: value.toInt()));
+                        _audioPlayer
+                            .seek(Duration(milliseconds: value.toInt()));
                       },
                     ),
                     Text(
