@@ -8,9 +8,7 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class  MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,10 +19,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MusicPlayer extends StatefulWidget {
-  const MusicPlayer({super.key});
-
   @override
-  // ignore: library_private_types_in_public_api
   _MusicPlayerState createState() => _MusicPlayerState();
 }
 
@@ -34,33 +29,48 @@ class _MusicPlayerState extends State<MusicPlayer> {
   int _currentTrackIndex = 0;
   bool _isPlaying = false;
 
-  Future<void> _pickFiles() async {
-    if (await Permission.storage.request().isGranted) {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.audio,
-        allowMultiple: true,
-      );
-
-      if (result != null) {
-        setState(() {
-          _playlist = result.files
-              .map((file) => {
-                    'path': file.path!,
-                    'name': file.name,
-                  })
-              .toList();
-        });
-        _loadTrack(0);
-      } else {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("No files selected")),
-        );
-      }
-    } else {
-      // ignore: use_build_context_synchronously
+  Future<void> _requestPermission() async {
+    final status = await Permission.storage.request();
+    if (status.isGranted) {
+      _pickFiles();
+    } else if (status.isDenied) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Storage permission is required")),
+        SnackBar(
+          content: Text("Storage permission is required. Click here to grant it."),
+          action: SnackBarAction(
+            label: "Grant",
+            onPressed: () async {
+              if (await Permission.storage.request().isGranted) {
+                _pickFiles();
+              }
+            },
+          ),
+        ),
+      );
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings();
+    }
+  }
+
+  Future<void> _pickFiles() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.audio,
+      allowMultiple: true,
+    );
+
+    if (result != null) {
+      setState(() {
+        _playlist = result.files
+            .map((file) => {
+                  'path': file.path!,
+                  'name': file.name,
+                })
+            .toList();
+      });
+      _loadTrack(0);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("No files selected")),
       );
     }
   }
@@ -105,8 +115,7 @@ class _MusicPlayerState extends State<MusicPlayer> {
       Rx.combineLatest2<Duration, Duration?, DurationState>(
         _audioPlayer.positionStream,
         _audioPlayer.durationStream,
-        (position, duration) =>
-            DurationState(position, duration ?? Duration.zero),
+        (position, duration) => DurationState(position, duration ?? Duration.zero),
       );
 
   @override
@@ -124,7 +133,7 @@ class _MusicPlayerState extends State<MusicPlayer> {
         actions: [
           IconButton(
             icon: Icon(Icons.library_music),
-            onPressed: _pickFiles,
+            onPressed: _requestPermission,
           )
         ],
       ),
@@ -149,12 +158,9 @@ class _MusicPlayerState extends State<MusicPlayer> {
                     Slider(
                       min: 0.0,
                       max: duration.inMilliseconds.toDouble(),
-                      value: position.inMilliseconds
-                          .toDouble()
-                          .clamp(0.0, duration.inMilliseconds.toDouble()),
+                      value: position.inMilliseconds.toDouble().clamp(0.0, duration.inMilliseconds.toDouble()),
                       onChanged: (value) {
-                        _audioPlayer
-                            .seek(Duration(milliseconds: value.toInt()));
+                        _audioPlayer.seek(Duration(milliseconds: value.toInt()));
                       },
                     ),
                     Text(
